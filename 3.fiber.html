@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fiber节点</title>
+</head>
+
+<body>
+  <script>
+    class Update {
+      constructor(payload) {
+        this.payload = payload;
+      }
+    }
+    class UpdateQueue {
+      constructor() {
+        this.baseState = null;
+        this.firstUpdate = this.lastUpdate = null;
+      }
+      enqueueUpdate(update) {
+        if (!this.firstUpdate) {
+          this.firstUpdate = this.lastUpdate = update;
+        } else {
+          this.lastUpdate = this.lastUpdate.next = update;
+        }
+      }
+      forceUpdate() {
+        let currentUpdate = this.firstUpdate;
+        let currentState = this.baseState;
+        while (currentUpdate) {
+          const payload = typeof currentUpdate.payload === 'function' ? currentUpdate.payload(currentState) :
+            currentUpdate.payload;
+          currentState = {
+            ...currentState,
+            ...payload
+          };
+          currentUpdate = currentUpdate.next;
+        }
+        return currentState;
+      }
+    }
+
+    let queue = new UpdateQueue();
+    queue.enqueueUpdate(new Update({name: 'yihang'}));
+    queue.enqueueUpdate(new Update({age: 18}));
+    queue.enqueueUpdate(new Update({balance: '5,000,000,000'}));
+    queue.enqueueUpdate(new Update(age=>({age: 17})));
+    const result = queue.forceUpdate();
+    console.log('result...', result);
+  </script>
+</body>
+
+</html>

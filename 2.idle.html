@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>requestIdleCallback</title>
+</head>
+
+<body>
+  <script>
+    function sleep(delay) {
+      for (let start = Date.now(); Date.now() - start < delay;) {
+
+      }
+    }
+    const allStart = Date.now();
+    const works = [() => {
+      console.log('task1 start');
+      sleep(20);
+      console.log('task1 end');
+    }, () => {
+      console.log('task2 start')
+      sleep(20);
+      console.log('task2 end');
+    }, () => {
+      console.log('task3 start');
+      sleep(20);
+      console.log('task3 end');
+      console.log('all works end spend time...', Date.now() - allStart);
+    }];
+    window.requestIdleCallback(workLoop, {
+      timeout: 1000
+    });
+
+    function workLoop(idleDeadline) {
+      console.log('idleDeadline.timeRemaining.', idleDeadline.timeRemaining());
+      // 当浏览器还有空余时间，或者任务还没执行完成，不归还控制权给浏览器
+      while ((idleDeadline.timeRemaining() > 0 || idleDeadline.didTimeout) && works.length) {
+        perfomUnitOfWork();
+      }
+
+      if (works.length > 0) {
+        window.requestIdleCallback(workLoop, {
+          timeout: 1000
+        });
+      }
+    }
+
+    function perfomUnitOfWork() {
+      if (works.length) {
+        works.shift()();
+      }
+    }
+  </script>
+</body>
+
+</html>
